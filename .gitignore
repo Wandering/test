@@ -1,0 +1,12 @@
+# Created by .ignore support plugin (hsz.mobi)
+.gradle/
+.vertx/
+out/
+src/main/resources/
+src/test/
+temp/
+test.iml
+test.ipr
+test.iws
+test_main.iml
+test_test.iml
