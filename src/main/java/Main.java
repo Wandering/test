@@ -1,30 +1,29 @@
 import com.alibaba.fastjson.JSON;
-import com.google.common.io.FileWriteMode;
-import com.google.common.io.Files;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 import org.apache.http.*;
 import org.apache.http.client.CookieStore;
-import org.apache.http.client.entity.EntityBuilder;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.protocol.HttpClientContext;
-import org.apache.http.entity.BasicHttpEntity;
 import org.apache.http.impl.client.BasicCookieStore;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.impl.cookie.BasicClientCookie2;
-import org.apache.http.message.BasicHttpRequest;
 
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Main {
+    private static final  String regEx = "[ _`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\n|\r|\t";
     public static void main(String[] args) throws URISyntaxException {
         CloseableHttpClient closeableHttpClient = HttpClientBuilder
                 .create().
@@ -54,22 +53,54 @@ public class Main {
         post.setHeader("Content-Type","application/x-www-form-urlencoded; charset=UTF-8");
         try {
             CloseableHttpResponse response;
-            response = closeableHttpClient.execute(httpGet);
-            Tesseract tessreact = new Tesseract();
-            tessreact.setDatapath("temp");
-                String path = "F:"+ "\\" + "File" +  Math.random() + ".png";
-                File file = new File(path);
-                Files.asByteSink(file, FileWriteMode.APPEND).writeFrom(response.getEntity().getContent());
-                String code = tessreact.doOCR(file);
-                System.out.println(code);
-            post.setURI(new URI("/m/publicquery/vio?hpzl=02&hphm1b=AG98T3&hphm=辽AG98T3&fdjh=279903&captcha="+code+"&qm=wf&page=1"));
-                response = closeableHttpClient.execute(httpHost,post,clientContext);
-                System.out.println(JSON.parseObject(response.getEntity().getContent(),String.class).toString());
+            String code;
+            Map<String, Object> rtnMap;
+            do {
 
+                code = getOcrCode(closeableHttpClient, httpGet);
+                post.setURI(new URI("/m/publicquery/vio?hpzl=02&hphm1b=AG98T3&hphm=辽AG98T3&fdjh=279903&captcha=" + code + "&qm=wf&page=1"));
+                response = closeableHttpClient.execute(httpHost, post, clientContext);
+
+                rtnMap = JSON.parseObject(response.getEntity().getContent(), Map.class);
+                System.out.println(JSON.toJSONString(rtnMap));
+            } while (rtnMap != null && (Integer) rtnMap.get("code") == 499);
         } catch (IOException e) {
             e.printStackTrace();
         } catch (TesseractException e) {
             e.printStackTrace();
         }
+    }
+
+    private static String getOcrCode(CloseableHttpClient closeableHttpClient, HttpGet httpGet) throws IOException, TesseractException {
+        CloseableHttpResponse response;
+        String code;
+        do {
+
+
+            response = closeableHttpClient.execute(httpGet);
+            BufferedImage img = ImageIO.read(response.getEntity().getContent());
+            Tesseract tesseract = new Tesseract();
+            tesseract.setLanguage("eng");
+            code = tesseract.doOCR(img);
+
+            if (code.lastIndexOf("\n") != -1) {
+                code = code.trim().replace("\n", "");
+            }
+
+        } while (code.length() < 4 || isSpecialChar(code));
+        return code;
+    }
+
+    /**
+     * 判断是否含有特殊字符
+     *
+     * @param str
+     * @return true为包含，false为不包含
+     */
+    public static boolean isSpecialChar(String str) {
+        String regEx = "[ _`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\n|\r|\t";
+        Pattern p = Pattern.compile(regEx);
+        Matcher m = p.matcher(str);
+        return m.find();
     }
 }
