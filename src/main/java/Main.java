@@ -25,17 +25,18 @@ import java.util.regex.Pattern;
 
 public class Main {
     private static final String regEx = "[ _`~!@#$%^&*()+=|{}':;',\\[\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？]|\n|\r|\t";
-
+    private static final String simple_host = "ln.122.gov.cn";
+    private static final String host = "http://" + simple_host;
     public static void main(String[] args) throws URISyntaxException {
         CloseableHttpClient closeableHttpClient = HttpClientBuilder
                 .create()
                 .build();
         HttpClientContext clientContext = HttpClientContext.create();
-        HttpGet httpGet = new HttpGet("http://ln.122.gov.cn/captcha?nocache=" + System.currentTimeMillis());
+        HttpGet httpGet = new HttpGet(host+"/captcha?nocache=" + System.currentTimeMillis());
 
-        HttpHost httpHost = new HttpHost("ln.122.gov.cn", 80);
+        HttpHost httpHost = new HttpHost(simple_host, 80);
         HttpPost post = new HttpPost();
-        post.setHeader(HttpHeaders.REFERER, "http://ln.122.gov.cn/views/inquiry.html?q=j");
+        post.setHeader(HttpHeaders.REFERER, host + "/views/inquiry.html?q=j");
         post.setHeader(HttpHeaders.CONTENT_TYPE, ContentType.APPLICATION_FORM_URLENCODED.getMimeType());
         try {
             CloseableHttpResponse response;
