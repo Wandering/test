@@ -97,9 +97,14 @@ public class Main {
      */
     public static boolean isSpecialChar(String str) {
         boolean flag = false;
+        System.out.println("字串："+str);
         int[] charInts = str.chars().toArray();
         for (int c : charInts) {
-            if (!(c > 47 && c < 123)) {
+            System.out.println(c);
+
+            if (!(((c > 47 && c < 58) || // 0-9
+                    (c > 64 && c < 91) ||// A-Z
+                    (c > 96 && c < 123)))) {
                 flag = true;
                 break;
             }
