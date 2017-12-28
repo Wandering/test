@@ -89,7 +89,7 @@ public class Main {
                 code = code.trim().replace("\n", "");
             }
 
-        } while (code.length() < 4 || isSpecialChar(code));
+        } while (code.length() != 4 || isSpecialChar(code));
         return code;
     }
 
