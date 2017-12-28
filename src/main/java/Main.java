@@ -62,8 +62,10 @@ public class Main {
                 response = closeableHttpClient.execute(httpHost, post, clientContext);
 
                 rtnMap = JSON.parseObject(response.getEntity().getContent(), Map.class);
-                System.out.println(JSON.toJSONString(rtnMap));
             } while (rtnMap != null && (Integer) rtnMap.get("code") == 499);
+
+            System.out.println(JSON.toJSONString(rtnMap));
+
         } catch (IOException e) {
             e.printStackTrace();
         } catch (TesseractException e) {
